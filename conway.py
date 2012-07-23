@@ -47,7 +47,16 @@ def get_at(world, coord):
     try:
         return world[coord.y][coord.x]
     except KeyError:
-        return None
+        y, x = (coord.y, coord.x)
+        if y < 0:
+            y = max(world.keys())
+        elif y > max(world.keys()):
+            y = 0
+        if x < 0:
+            x = max(world[0].keys())
+        elif x > max(world[0].keys()):
+            x = 0
+        return world[y][x]
 
 
 def coordinates(world):
@@ -80,17 +89,18 @@ def neighbours(world, coord):
     Return the number of neighbours at a coordinate in the world.
 
     A neighbour is defined as the integer '1' in directly adjacent
-    coordinates in the eight cardinal directions.
+    coordinates in the eight cardinal directions.  The world wraps
+    around at the poles.
 
-    >>> world = {0: {0: 0, 1: 1, 2: 0},
-    ...          1: {0: 1, 1: 1, 2: 1},
-    ...          2: {0: 0, 1: 1, 2: 0}}
+    >>> world = {0: {0: 0, 1: 1, 2: 0, 3: 0},
+    ...          1: {0: 1, 1: 1, 2: 1, 3: 0},
+    ...          2: {0: 0, 1: 1, 2: 0, 3: 0}}
     >>> c = Coordinate(1, 1)
     >>> neighbours(world, c)
     4
-    >>> c2 = Coordinate(1, 0)
+    >>> c2 = Coordinate(3, 1)
     >>> neighbours(world, c2)
-    3
+    2
 
     :param coord: A Coordinate named-tuple
     :param world: A dictionary representing the world
@@ -118,10 +128,10 @@ def step(world):
     ...          2: {0: 0, 1: 1, 2: 0}}
     >>> gen_1 = step(world)
     >>> gen_1
-    {0: {0: 0, 1: 0, 2: 0}, 1: {0: 1, 1: 1, 2: 1}, 2: {0: 0, 1: 0, 2: 0}}
+    {0: {0: 1, 1: 1, 2: 1}, 1: {0: 1, 1: 1, 2: 1}, 2: {0: 1, 1: 1, 2: 1}}
     >>> gen_2 = step(gen_1)
     >>> gen_2
-    {0: {0: 0, 1: 1, 2: 0}, 1: {0: 0, 1: 1, 2: 0}, 2: {0: 0, 1: 1, 2: 0}}
+    {0: {0: 0, 1: 0, 2: 0}, 1: {0: 0, 1: 0, 2: 0}, 2: {0: 0, 1: 0, 2: 0}}
 
     :param world: A dict object representing the world
     :returns: A dict representing a new world advanced by one step
@@ -152,13 +162,13 @@ def generations(num, starting_world):
     applications of the 'step' function.
 
     >>> seed = {0: {0: 0, 1: 1, 2: 0},
-    ...         1: {0: 0, 1: 1, 2: 0},
-    ...         2: {0: 0, 1: 1, 2: 0}}
+    ...         1: {0: 1, 1: 1, 2: 0},
+    ...         2: {0: 0, 1: 0, 2: 0}}
     >>> for g, world in generations(3, seed):
     ...     print g, world
-    0 {0: {0: 0, 1: 1, 2: 0}, 1: {0: 0, 1: 1, 2: 0}, 2: {0: 0, 1: 1, 2: 0}}
-    1 {0: {0: 0, 1: 0, 2: 0}, 1: {0: 1, 1: 1, 2: 1}, 2: {0: 0, 1: 0, 2: 0}}
-    2 {0: {0: 0, 1: 1, 2: 0}, 1: {0: 0, 1: 1, 2: 0}, 2: {0: 0, 1: 1, 2: 0}}
+    0 {0: {0: 0, 1: 1, 2: 0}, 1: {0: 1, 1: 1, 2: 0}, 2: {0: 0, 1: 0, 2: 0}}
+    1 {0: {0: 1, 1: 1, 2: 1}, 1: {0: 1, 1: 1, 2: 1}, 2: {0: 1, 1: 1, 2: 1}}
+    2 {0: {0: 0, 1: 0, 2: 0}, 1: {0: 0, 1: 0, 2: 0}, 2: {0: 0, 1: 0, 2: 0}}
 
    :param num: The number of generations to yield
    :param starting_world: The initial world to kick off with
