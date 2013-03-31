@@ -116,7 +116,7 @@ class Grid(Mapping):
         return g
 
     @staticmethod
-    def from_array(width, height, arr):
+    def from_array(width, height, arr, copy=True):
         """ Create a Grid from an existing array.
 
         >>> w = h = 3
@@ -136,7 +136,8 @@ class Grid(Mapping):
         assert len(arr) == width * height, ("Array dimensions do not "
                                             "match length of array.")
         g = Grid(width, height)
-        g._grid = arr
+        a = deepcopy(arr) if copy else arr
+        g._grid = a
         return g
 
     @staticmethod
