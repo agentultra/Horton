@@ -23,7 +23,7 @@ adhere to a functional style so one should note that the step function
 returns a new instance of a Grid object instead of modifying its
 parameter.
 
-Copyright (C) 2012  James King
+Copyright (C) 2012, 2013  James King
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -101,9 +101,7 @@ class Grid(Mapping):
     Care must be taken when creating Grids from arrays to ensure that
     the proper dimensions are passed in.  The only assertion this
     method makes is that the product of the width and height are the
-    same as the length of the input array.  If you flip the width and
-    height from what you expect you might be surprised with the
-    output.
+    same as the length of the input array.
     """
 
     def __init__(self, width, height, value=0):
@@ -133,18 +131,12 @@ class Grid(Mapping):
 
         Be careful with this function!  The only sanity check we can
         perform ensures that the dimensions are equal to the length of
-        the input array.  It is up to you to ensure the proper
-        dimensions of the grid.
-
-        Also note that the order of elements will differ between the
-        input array and the Grid's internal array.
+        the input array.
         """
         assert len(arr) == width * height, ("Array dimensions do not "
                                             "match length of array.")
         g = Grid(width, height)
-        for y in range(height):
-            for x in range(width):
-                g[x, y] = arr[y * width + x]
+        g._grid = arr
         return g
 
     @staticmethod
@@ -164,14 +156,14 @@ class Grid(Mapping):
 
     def __getitem__(self, *args):
         try:
-            return self._grid[args[0][0] * self.width + args[0][1]]
+            return self._grid[args[0][1] * self.height + args[0][0]]
         except IndexError:
             raise KeyError("({0}, {1}) is an invalid co-ordinate".format(
                 *args[0]))
 
     def __setitem__(self, *args):
         try:
-            self._grid[args[0][0] * self.width + args[0][1]] = args[1]
+            self._grid[args[0][1] * self.height + args[0][0]] = args[1]
         except IndexError:
             raise KeyError("({0}, {1}) is an invalid co-ordinate".format(
                 *args[0]))
