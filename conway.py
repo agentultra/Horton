@@ -53,6 +53,58 @@ Coordinate = namedtuple("Coordinate", "x y")
 
 
 class Grid(Mapping):
+    """
+    A Grid is a two-dimensional data-structure.
+
+    >>> g = Grid(5, 5)
+    >>> Grid.pprint(g)
+    0 0 0 0 0
+    0 0 0 0 0
+    0 0 0 0 0
+    0 0 0 0 0
+    0 0 0 0 0
+    >>> g[0, 0] = 1
+    >>> g[4, 4] = 1
+    >>> Grid.pprint(g)
+    1 0 0 0 0
+    0 0 0 0 0
+    0 0 0 0 0
+    0 0 0 0 0
+    0 0 0 0 1
+
+    The height and width of the grid are inclusive while the indexing
+    begins at zero.  Access to elements of the grid are provided via
+    the Mapping interface.  Internally the elements are stored in a
+    flat array and can be any Python object.  The default element is
+    the integer 0, but can be specified via the 'value' parameter to
+    the Grid's constructor:
+
+    >>> g = Grid(3, 3, value=".")
+    >>> Grid.pprint(g)
+    . . .
+    . . .
+    . . .
+
+    There are helpful static methods available for copying grids,
+    creating grids from arrays, and pretty printing grids.
+
+    >>> w = h = 3
+    >>> world = [0, 0, 0,
+    ...          1, 0, 1,
+    ...          0, 1, 0]
+    >>> g = Grid.from_array(w, h, world)
+    >>> Grid.pprint(g)
+    0 0 0
+    1 0 1
+    0 1 0
+
+    Care must be taken when creating Grids from arrays to ensure that
+    the proper dimensions are passed in.  The only assertion this
+    method makes is that the product of the width and height are the
+    same as the length of the input array.  If you flip the width and
+    height from what you expect you might be surprised with the
+    output.
+    """
 
     def __init__(self, width, height, value=0):
         self.width = width
@@ -63,6 +115,33 @@ class Grid(Mapping):
     def copy(other):
         g = Grid(other.width, other.height)
         g._grid = deepcopy(other._grid)
+        return g
+
+    @staticmethod
+    def from_array(width, height, arr):
+        """ Create a Grid from an existing array.
+
+        >>> w = h = 3
+        >>> world = [0, 0, 0,
+        ...          0, 1, 1,
+        ...          0, 0, 1]
+        >>> g = Grid.from_array(w, h, world)
+        >>> Grid.pprint(g)
+        0 0 0
+        0 1 1
+        0 0 1
+
+        Be careful with this function!  The only sanity check we can
+        perform ensures that the dimensions are equal to the length of
+        the input array.  It is up to you to ensure the proper
+        dimensions of the grid.
+        """
+        assert len(arr) == width * height, ("Array dimensions do not "
+                                            "match length of array.")
+        g = Grid(width, height)
+        for y in range(height):
+            for x in range(width):
+                g[x, y] = arr[y * width + x]
         return g
 
     @staticmethod
