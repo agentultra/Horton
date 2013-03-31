@@ -135,6 +135,9 @@ class Grid(Mapping):
         perform ensures that the dimensions are equal to the length of
         the input array.  It is up to you to ensure the proper
         dimensions of the grid.
+
+        Also note that the order of elements will differ between the
+        input array and the Grid's internal array.
         """
         assert len(arr) == width * height, ("Array dimensions do not "
                                             "match length of array.")
