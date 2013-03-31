@@ -1,17 +1,27 @@
 """
 conway.py: An implementation of Conway's Game of Life
 
-This module uses Python dictionaries to represent the world.  Keys in
-this dictionary are integer coordinates on a two-dimensional Cartesian
-plane while the values are either 0 or 1 for representing a dead or
-alive cell respectively.
+This module uses a Grid object to represent the world.  The Grid
+object implements the Mapping ABC and uses tuples for keys to address
+locations in the plane:
+
+    >>> g = Grid(3, 3)
+    >>> g[1, 1] = 1
+    >>> g[1, 1]
+    1
+
+This simulation uses the integer 1 to represent a 'live' cell and 0 to
+represent a 'dead' cell.
 
 There is a convenient generator for iterating over successive
 generations starting from a seed world (see the 'generations'
 function).
 
 However if you want to run the simulation your own way the function to
-use is the 'step' function.
+use is the 'step' function.  As much as possible this script tries to
+adhere to a functional style so one should note that the step function
+returns a new instance of a Grid object instead of modifying its
+parameter.
 
 Copyright (C) 2012  James King
 
