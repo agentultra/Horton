@@ -147,7 +147,7 @@ class Grid(Mapping):
                            x in range(grid.width)))
 
     def __len__(self):
-        return len(self._grid)
+        return self.width * self.height
 
     def __iter__(self):
         return iter(self._grid)
