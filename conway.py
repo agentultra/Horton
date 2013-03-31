@@ -102,6 +102,18 @@ class Grid(Mapping):
     the proper dimensions are passed in.  The only assertion this
     method makes is that the product of the width and height are the
     same as the length of the input array.
+
+    Grids can be compared for equality:
+
+    >>> g1 = Grid(3, 3)
+    >>> g2 = Grid(3, 3)
+    >>> g1[0, 0] = 1
+    >>> g2[0, 0] = 1
+    >>> g3 = Grid(3, 3)
+    >>> g1 == g2
+    True
+    >>> g1 == g3
+    False
     """
 
     def __init__(self, width, height, value=0):
@@ -117,22 +129,6 @@ class Grid(Mapping):
 
     @staticmethod
     def from_array(width, height, arr, copy=True):
-        """ Create a Grid from an existing array.
-
-        >>> w = h = 3
-        >>> world = [0, 0, 0,
-        ...          0, 1, 1,
-        ...          0, 0, 1]
-        >>> g = Grid.from_array(w, h, world)
-        >>> Grid.pprint(g)
-        0 0 0
-        0 1 1
-        0 0 1
-
-        Be careful with this function!  The only sanity check we can
-        perform ensures that the dimensions are equal to the length of
-        the input array.
-        """
         assert len(arr) == width * height, ("Array dimensions do not "
                                             "match length of array.")
         g = Grid(width, height)
@@ -148,6 +144,10 @@ class Grid(Mapping):
 
     def __len__(self):
         return self.width * self.height
+
+    def __eq__(self, other):
+        assert isinstance(other, Grid)
+        return self._grid == other._grid
 
     def __iter__(self):
         return iter(self._grid)
@@ -173,7 +173,6 @@ class Grid(Mapping):
 def get_at(world, coord):
     """ Fetch a value from a Grid object and treat it as a torus."""
     return world[coord.x % world.width, coord.y % world.height]
-
 
 
 def coordinates(world):
