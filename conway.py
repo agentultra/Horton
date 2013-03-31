@@ -319,7 +319,7 @@ def generations(num, starting_world):
    :param starting_world: The initial world to kick off with
    :returns: A generator that yields successive generations of starting_world
     """
-    world = starting_world
+    world = Grid.copy(starting_world)
     for generation in xrange(num):
         yield generation, world
         world = step(world)
