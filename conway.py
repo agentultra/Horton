@@ -13,8 +13,6 @@ function).
 However if you want to run the simulation your own way the function to
 use is the 'step' function.
 
-TODO: Allow the edges of the world to wrap around.
-
 Copyright (C) 2012  James King
 
 This program is free software: you can redistribute it and/or modify
@@ -32,9 +30,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 __author__ = "James King <james@agentultra.com>"
-__version__ = "0.1.0"
+__version__ = "0.2.0"
 
 
+from collections import Mapping
 from collections import namedtuple
 from copy import deepcopy
 from functools import partial
@@ -43,28 +42,65 @@ from functools import partial
 Coordinate = namedtuple("Coordinate", "x y")
 
 
+class Grid(Mapping):
+
+    def __init__(self, width, height, value=0):
+        self.width = width
+        self.height = height
+        self._grid = [value for _ in range(width * height)]
+
+    @staticmethod
+    def copy(other):
+        g = Grid(other.width, other.height)
+        g._grid = deepcopy(other._grid)
+        return g
+
+    @staticmethod
+    def pprint(grid):
+        for y in range(grid.height):
+            print(" ".join(str(grid[x, y]) for
+                           x in range(grid.width)))
+
+    def __len__(self):
+        return len(self._grid)
+
+    def __iter__(self):
+        return iter(self._grid)
+
+    def __contains__(self, value):
+        return value in self._grid
+
+    def __getitem__(self, *args):
+        try:
+            return self._grid[args[0][0] * self.width + args[0][1]]
+        except IndexError:
+            raise KeyError("({0}, {1}) is an invalid co-ordinate".format(
+                *args[0]))
+
+    def __setitem__(self, *args):
+        try:
+            self._grid[args[0][0] * self.width + args[0][1]] = args[1]
+        except IndexError:
+            raise KeyError("({0}, {1}) is an invalid co-ordinate".format(
+                *args[0]))
+
+
 def get_at(world, coord):
-    try:
-        return world[coord.y][coord.x]
-    except KeyError:
-        y, x = (coord.y, coord.x)
-        if y < 0:
-            y = max(world.keys())
-        elif y > max(world.keys()):
-            y = 0
-        if x < 0:
-            x = max(world[0].keys())
-        elif x > max(world[0].keys()):
-            x = 0
-        return world[y][x]
+    """ Fetch a value from a Grid object and treat it as a torus."""
+    return world[coord.x % world.width, coord.y % world.height]
+
 
 
 def coordinates(world):
     """ Yield each Coordinate and cell from world.
 
-    >>> world = {0: {0: 0, 1: 1, 2: 0},
-    ...          1: {0: 1, 1: 1, 2: 1},
-    ...          2: {0: 0, 1: 1, 2: 0}}
+    >>> world = Grid(3, 3)
+    >>> world[0, 1] = 1
+    >>> world[1, 0] = 1
+    >>> world[0, 1] = 1
+    >>> world[1, 1] = 1
+    >>> world[2, 1] = 1
+    >>> world[1, 2] = 1
     >>> for coord, cell in coordinates(world):
     ...     print coord, cell
     Coordinate(x=0, y=0) 0
@@ -77,11 +113,9 @@ def coordinates(world):
     Coordinate(x=1, y=2) 1
     Coordinate(x=2, y=2) 0
     """
-    # TODO: There's the possibility this test may fail occasionally
-    # due to dict ordering.
-    for y, row in world.items():
-        for x, cell in row.items():
-            yield Coordinate(x, y), cell
+    for y in range(world.height):
+        for x in range(world.width):
+            yield (Coordinate(x, y), world[x, y])
 
 
 def neighbours(world, coord):
@@ -92,18 +126,27 @@ def neighbours(world, coord):
     coordinates in the eight cardinal directions.  The world wraps
     around at the poles.
 
-    >>> world = {0: {0: 0, 1: 1, 2: 0, 3: 0},
-    ...          1: {0: 1, 1: 1, 2: 1, 3: 0},
-    ...          2: {0: 0, 1: 1, 2: 0, 3: 0}}
-    >>> c = Coordinate(1, 1)
-    >>> neighbours(world, c)
-    4
-    >>> c2 = Coordinate(3, 1)
+    >>> world = Grid(4, 4)
+    >>> world[1, 0] = 1
+    >>> world[2, 0] = 1
+    >>> world[1, 1] = 1
+    >>> Grid.pprint(world)
+    0 1 1 0
+    0 1 0 0
+    0 0 0 0
+    0 0 0 0
+    >>> c1 = Coordinate(2, 1)
+    >>> neighbours(world, c1)
+    3
+    >>> c2 = Coordinate(1, 3)
     >>> neighbours(world, c2)
     2
+    >>> c3 = Coordinate(2, 2)
+    >>> neighbours(world, c3)
+    1
 
     :param coord: A Coordinate named-tuple
-    :param world: A dictionary representing the world
+    :param world: A Grid object representing the world
     :returns: An integer representing the number of neighbours
     """
     cells = map(partial(get_at, world),
@@ -123,35 +166,41 @@ def step(world):
     Returns a new version of the world by applying the rules of the
     game to the old one.
 
-    >>> world = {0: {0: 0, 1: 1, 2: 0},
-    ...          1: {0: 0, 1: 1, 2: 0},
-    ...          2: {0: 0, 1: 1, 2: 0}}
+    >>> world = Grid(3, 3)
+    >>> world[0, 1] = 1
+    >>> world[1, 1] = 1
+    >>> world[2, 1] = 1
     >>> gen_1 = step(world)
-    >>> gen_1
-    {0: {0: 1, 1: 1, 2: 1}, 1: {0: 1, 1: 1, 2: 1}, 2: {0: 1, 1: 1, 2: 1}}
+    >>> Grid.pprint(gen_1)
+    1 1 1
+    1 1 1
+    1 1 1
     >>> gen_2 = step(gen_1)
-    >>> gen_2
-    {0: {0: 0, 1: 0, 2: 0}, 1: {0: 0, 1: 0, 2: 0}, 2: {0: 0, 1: 0, 2: 0}}
+    >>> Grid.pprint(gen_2)
+    0 0 0
+    0 0 0
+    0 0 0
 
-    :param world: A dict object representing the world
-    :returns: A dict representing a new world advanced by one step
+    :param world: A Grid object representing the world
+    :returns: A new Grid object representing a new world advanced by one
+              step
     """
-    new_world = deepcopy(world)
+    new_world = Grid.copy(world)
     for coord, cell in coordinates(world):
         ns = neighbours(world, coord)
         x, y = (coord.x, coord.y)
         if cell == 1:
             if ns < 2:
-                new_world[y][x] = 0
+                new_world[x, y] = 0
             if ns == 2 or ns == 3:
-                new_world[y][x] = 1
+                new_world[x, y] = 1
             if ns > 3:
-                new_world[y][x] = 0
+                new_world[x, y] = 0
         else:
             if ns == 3:
-                new_world[y][x] = 1
+                new_world[x, y] = 1
             else:
-                new_world[y][x] = 0
+                new_world[x, y] = 0
     return new_world
 
 
@@ -161,14 +210,25 @@ def generations(num, starting_world):
     The first generation is starting_world followed by successive
     applications of the 'step' function.
 
-    >>> seed = {0: {0: 0, 1: 1, 2: 0},
-    ...         1: {0: 1, 1: 1, 2: 0},
-    ...         2: {0: 0, 1: 0, 2: 0}}
+    >>> seed = Grid(3, 3)
+    >>> seed[1, 0] = 1
+    >>> seed[0, 1] = 1
+    >>> seed[1, 1] = 1
     >>> for g, world in generations(3, seed):
-    ...     print g, world
-    0 {0: {0: 0, 1: 1, 2: 0}, 1: {0: 1, 1: 1, 2: 0}, 2: {0: 0, 1: 0, 2: 0}}
-    1 {0: {0: 1, 1: 1, 2: 1}, 1: {0: 1, 1: 1, 2: 1}, 2: {0: 1, 1: 1, 2: 1}}
-    2 {0: {0: 0, 1: 0, 2: 0}, 1: {0: 0, 1: 0, 2: 0}, 2: {0: 0, 1: 0, 2: 0}}
+    ...     print(g)
+    ...     Grid.pprint(world)
+    0
+    0 1 0
+    1 1 0
+    0 0 0
+    1
+    1 1 1
+    1 1 1
+    1 1 1
+    2
+    0 0 0
+    0 0 0
+    0 0 0
 
    :param num: The number of generations to yield
    :param starting_world: The initial world to kick off with
@@ -181,5 +241,5 @@ def generations(num, starting_world):
 
 
 if __name__ == '__main__':
-    import doctest    
+    import doctest
     doctest.testmod()
