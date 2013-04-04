@@ -142,6 +142,13 @@ class Grid(Mapping):
             print(" ".join(str(grid[x, y]) for
                            x in range(grid.width)))
 
+    def _is_valid_location(self, x, y):
+        if x < 0 or x > self.width - 1:
+            return False
+        if y < 0 or y > self.height - 1:
+            return False
+        return True
+
     def __len__(self):
         return self.width * self.height
 
@@ -156,6 +163,9 @@ class Grid(Mapping):
         return value in self._grid
 
     def __getitem__(self, *args):
+        if not self._is_valid_location(*args[0]):
+            raise KeyError("({0}, {1}) is an invalid co-ordinate".format(
+                *args[0]))
         try:
             return self._grid[args[0][1] * self.height + args[0][0]]
         except IndexError:
@@ -163,6 +173,9 @@ class Grid(Mapping):
                 *args[0]))
 
     def __setitem__(self, *args):
+        if not self._is_valid_location(*args[0]):
+            raise KeyError("({0}, {1}) is an invalid co-ordinate".format(
+                *args[0]))
         try:
             self._grid[args[0][1] * self.height + args[0][0]] = args[1]
         except IndexError:
