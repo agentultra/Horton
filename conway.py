@@ -183,6 +183,55 @@ class Grid(Mapping):
                 *args[0]))
 
 
+class Torus(Grid):
+    """
+    A grid whose edges are connected.
+
+    >>> w = h = 3
+    >>> world = [0, 1, 0,
+    ...          0, 0, 0,
+    ...          0, 2, 0]
+    >>> t = Torus.from_array(w, h, world)
+    >>> Torus.pprint(t)
+    0 1 0
+    0 0 0
+    0 2 0
+    >>> t[1, 0]
+    1
+    >>> t[1, -1]
+    2
+    >>> t[4, 0]
+    1
+    """
+
+    @staticmethod
+    def copy(other):
+        t = Torus(other.width, other.height)
+        t._grid = deepcopy(other._grid)
+        return t
+
+    @staticmethod
+    def from_array(width, height, arr, copy=True):
+        assert len(arr) == width * height, ("Array dimensions do not "
+                                            "match length of array.")
+        t = Torus(width, height)
+        a = deepcopy(arr) if copy else arr
+        t._grid = a
+        return t
+
+    def __getitem__(self, *args):
+        x = args[0][0] % self.width
+        y = args[0][1] % self.height
+
+        return self._grid[y * self.height + x]
+
+    def __setitem__(self, *args):
+        x = args[0][0] % self.width
+        y = args[0][1] % self.height
+
+        self._grid[y * self.height + x] = args[1]
+
+
 def get_at(world, coord):
     """ Fetch a value from a Grid object and treat it as a torus."""
     return world[coord.x % world.width, coord.y % world.height]
