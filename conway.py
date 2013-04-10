@@ -121,17 +121,17 @@ class Grid(Mapping):
         self.height = height
         self._grid = [value for _ in range(width * height)]
 
-    @staticmethod
-    def copy(other):
-        g = Grid(other.width, other.height)
+    @classmethod
+    def copy(cls, other):
+        g = cls(other.width, other.height)
         g._grid = deepcopy(other._grid)
         return g
 
-    @staticmethod
-    def from_array(width, height, arr, copy=True):
+    @classmethod
+    def from_array(cls, width, height, arr, copy=True):
         assert len(arr) == width * height, ("Array dimensions do not "
                                             "match length of array.")
-        g = Grid(width, height)
+        g = cls(width, height)
         a = deepcopy(arr) if copy else arr
         g._grid = a
         return g
@@ -203,21 +203,6 @@ class Torus(Grid):
     >>> t[4, 0]
     1
     """
-
-    @staticmethod
-    def copy(other):
-        t = Torus(other.width, other.height)
-        t._grid = deepcopy(other._grid)
-        return t
-
-    @staticmethod
-    def from_array(width, height, arr, copy=True):
-        assert len(arr) == width * height, ("Array dimensions do not "
-                                            "match length of array.")
-        t = Torus(width, height)
-        a = deepcopy(arr) if copy else arr
-        t._grid = a
-        return t
 
     def __getitem__(self, *args):
         x = args[0][0] % self.width
