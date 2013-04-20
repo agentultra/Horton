@@ -53,8 +53,11 @@ Coordinate = namedtuple("Coordinate", "x y")
 
 
 def get_at(world, coord):
-    """ Fetch a value from a Grid object and treat it as a torus."""
-    return world[coord.x % world.width, coord.y % world.height]
+    """ Return a value from the world at the coordinate or None."""
+    try:
+        return world[coord.x, coord.y]
+    except KeyError:
+        return None
 
 
 def coordinates(world):
@@ -89,8 +92,7 @@ def neighbours(world, coord):
     Return the number of neighbours at a coordinate in the world.
 
     A neighbour is defined as the integer '1' in directly adjacent
-    coordinates in the eight cardinal directions.  The world wraps
-    around at the poles.
+    coordinates in the eight cardinal directions.
 
     >>> world = Grid(4, 4)
     >>> world[1, 0] = 1
@@ -106,7 +108,7 @@ def neighbours(world, coord):
     3
     >>> c2 = Coordinate(1, 3)
     >>> neighbours(world, c2)
-    2
+    0
     >>> c3 = Coordinate(2, 2)
     >>> neighbours(world, c3)
     1
@@ -138,13 +140,13 @@ def step(world):
     >>> world[2, 1] = 1
     >>> gen_1 = step(world)
     >>> Grid.pprint(gen_1)
-    1 1 1
-    1 1 1
-    1 1 1
+    0 1 0
+    0 1 0
+    0 1 0
     >>> gen_2 = step(gen_1)
     >>> Grid.pprint(gen_2)
     0 0 0
-    0 0 0
+    1 1 1
     0 0 0
 
     :param world: A Grid object representing the world
@@ -177,23 +179,23 @@ def generations(num, starting_world):
     applications of the 'step' function.
 
     >>> seed = Grid(3, 3)
-    >>> seed[1, 0] = 1
     >>> seed[0, 1] = 1
     >>> seed[1, 1] = 1
+    >>> seed[2, 1] = 1
     >>> for g, world in generations(3, seed):
     ...     print(g)
     ...     Grid.pprint(world)
     0
-    0 1 0
-    1 1 0
+    0 0 0
+    1 1 1
     0 0 0
     1
-    1 1 1
-    1 1 1
-    1 1 1
+    0 1 0
+    0 1 0
+    0 1 0
     2
     0 0 0
-    0 0 0
+    1 1 1
     0 0 0
 
    :param num: The number of generations to yield
