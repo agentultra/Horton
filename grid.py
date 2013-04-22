@@ -90,7 +90,7 @@ class Grid(Mapping):
 
     >>> g = Grid(2, 2)
     >>> g.coordinates
-    [(0, 0), (0, 1), (1, 0), (1, 1)]
+    [(0, 0), (1, 0), (0, 1), (1, 1)]
 
     And iterate over coordinate/value pairs:
 
@@ -100,8 +100,8 @@ class Grid(Mapping):
     >>> for c, v in g.items():
     ...     print c, v
     (0, 0) 1
-    (0, 1) 3
     (1, 0) 2
+    (0, 1) 3
     (1, 1) 4
     """
 
@@ -137,8 +137,8 @@ class Grid(Mapping):
 
     @property
     def coordinates(self):
-        return [(x, y) for x in range(self.width)
-                for y in range(self.height)]
+        return [(x, y) for y in range(self.height)
+                for x in range(self.width)]
 
     def items(self):
         for coordinate in self.coordinates:
