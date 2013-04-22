@@ -64,6 +64,45 @@ class Grid(Mapping):
     True
     >>> g1 == g3
     False
+
+    They support some arithmetic operations:
+
+    >>> g1 = Grid(3, 3)
+    >>> g2 = Grid(3, 3)
+    >>> g1[0, 0] = 4
+    >>> g2[0, 0] = 3
+    >>> Grid.pprint(g1 + g2)
+    7 0 0
+    0 0 0
+    0 0 0
+
+    >>> g1 = Grid(3, 3)
+    >>> g2 = Grid(3, 3)
+    >>> g1[0, 0] = 1
+    >>> g1[0, 1] = 2
+    >>> g2[0, 0] = 1
+    >>> Grid.pprint(g1 - g2)
+    0 0 0
+    2 0 0
+    0 0 0
+
+    You can retrieve a list of co-ordinates:
+
+    >>> g = Grid(2, 2)
+    >>> g.coordinates
+    [(0, 0), (0, 1), (1, 0), (1, 1)]
+
+    And iterate over coordinate/value pairs:
+
+    >>> g = Grid.from_array(2, 2,
+    ...                     [1, 2,
+    ...                      3, 4])
+    >>> for c, v in g.items():
+    ...     print c, v
+    (0, 0) 1
+    (0, 1) 3
+    (1, 0) 2
+    (1, 1) 4
     """
 
     def __init__(self, width, height, value=0):
@@ -92,6 +131,19 @@ class Grid(Mapping):
             print(" ".join(str(grid[x, y]) for
                            x in range(grid.width)))
 
+    @property
+    def dimensions(self):
+        return (self.width, self.height)
+
+    @property
+    def coordinates(self):
+        return [(x, y) for x in range(self.width)
+                for y in range(self.height)]
+
+    def items(self):
+        for coordinate in self.coordinates:
+            yield (coordinate, self.__getitem__(coordinate))
+
     def _is_valid_location(self, x, y):
         if x < 0 or x > self.width - 1:
             return False
@@ -106,6 +158,26 @@ class Grid(Mapping):
         assert isinstance(other, Grid)
         return self._grid == other._grid
 
+    def __add__(self, other):
+        assert isinstance(other, Grid)
+        assert self.dimensions == other.dimensions
+
+        g = Grid(*self.dimensions)
+        for idx, val in enumerate(self._grid):
+            g._grid[idx] = val + other._grid[idx]
+
+        return g
+
+    def __sub__(self, other):
+        assert isinstance(other, Grid)
+        assert self.dimensions == other.dimensions
+
+        g = Grid(*self.dimensions)
+        for idx, val in enumerate(self._grid):
+            g._grid[idx] = val - other._grid[idx]
+
+        return g
+
     def __iter__(self):
         return iter(self._grid)
 
@@ -116,8 +188,9 @@ class Grid(Mapping):
         if not self._is_valid_location(*args[0]):
             raise KeyError("({0}, {1}) is an invalid co-ordinate".format(
                 *args[0]))
+        x, y = args[0]
         try:
-            return self._grid[args[0][1] * self.height + args[0][0]]
+            return self._grid[y * self.height + x]
         except IndexError:
             raise KeyError("({0}, {1}) is an invalid co-ordinate".format(
                 *args[0]))
@@ -126,8 +199,9 @@ class Grid(Mapping):
         if not self._is_valid_location(*args[0]):
             raise KeyError("({0}, {1}) is an invalid co-ordinate".format(
                 *args[0]))
+        x, y = args[0]
         try:
-            self._grid[args[0][1] * self.height + args[0][0]] = args[1]
+            self._grid[y * self.height + x] = args[1]
         except IndexError:
             raise KeyError("({0}, {1}) is an invalid co-ordinate".format(
                 *args[0]))
