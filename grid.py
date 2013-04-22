@@ -86,11 +86,13 @@ class Grid(Mapping):
     2 0 0
     0 0 0
 
-    You can retrieve a list of co-ordinates:
+    You can retrieve a list of co-ordinates or values:
 
     >>> g = Grid(2, 2)
     >>> g.coordinates
     [(0, 0), (1, 0), (0, 1), (1, 1)]
+    >>> g.values
+    [0, 0, 0, 0]
 
     And iterate over coordinate/value pairs:
 
@@ -109,6 +111,7 @@ class Grid(Mapping):
         self.width = width
         self.height = height
         self._grid = [value for _ in range(width * height)]
+        self._coordinates = None
 
     @classmethod
     def copy(cls, other):
@@ -137,8 +140,16 @@ class Grid(Mapping):
 
     @property
     def coordinates(self):
-        return [(x, y) for y in range(self.height)
-                for x in range(self.width)]
+        if self._coordinates:
+            return self._coordinates
+        else:
+            self._coordinates = [(x, y) for y in range(self.height)
+                                 for x in range(self.width)]
+            return self._coordinates
+
+    @property
+    def values(self):
+        return deepcopy(self._grid)
 
     def items(self):
         for coordinate in self.coordinates:
