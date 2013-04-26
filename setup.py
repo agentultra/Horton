@@ -8,7 +8,7 @@ __license__ = "MIT"
 
 
 setup(
-    name="Conway",
+    name="Horton",
     version=".".join(__version__),
     packages=find_packages(),
 

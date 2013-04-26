@@ -1,7 +1,10 @@
-conway
+Horton
 ======
 
-Conway&#39;s Game of Life
+A library of useful things to build grid-based simulations, cellular
+automata, and other fine amusements.
+
+Also includes Conway's Game of Life.
 
 TODO
 ----
