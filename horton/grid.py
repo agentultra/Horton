@@ -152,6 +152,9 @@ class Grid(Mapping):
         return deepcopy(self._grid)
 
     def items(self):
+        return zip(self.coordinates, self.values)
+
+    def iter_items(self):
         for coordinate in self.coordinates:
             yield (coordinate, self.__getitem__(coordinate))
 
