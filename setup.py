@@ -9,7 +9,7 @@ __license__ = "MIT"
 
 setup(
     name="Horton",
-    version=".".join(__version__),
+    version=__version__,
     packages=find_packages(),
 
     extras_require = {
