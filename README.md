@@ -9,7 +9,6 @@ Also includes Conway's Game of Life.
 TODO
 ----
 
-- packaging
-  - documentation
-- pygame rendering
-- examples
+- documentation
+- more examples
+- an optimized render
