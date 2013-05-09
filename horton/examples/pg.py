@@ -37,7 +37,7 @@ while running:
             if event.key == K_EQUALS:
                 GRID_PADDING += 1
             elif event.key == K_MINUS:
-                if GRID_PADDING > 1:
+                if GRID_PADDING >= 1:
                     GRID_PADDING -= 1
             elif event.key == K_RIGHT:
                 GRID_W += 1
