@@ -12,3 +12,4 @@ TODO
 - documentation
 - more examples
 - an optimized render
+- grid.by_column, grid.by_row

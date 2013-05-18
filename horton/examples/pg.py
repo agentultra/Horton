@@ -15,6 +15,7 @@ FONT_COLOUR = (0, 0, 255)
 
 pygame.init()
 pygame.font.init()
+pygame.key.set_repeat(100, 50)
 
 screen = pygame.display.set_mode((640, 480))
 font = pygame.font.Font(None, 18)
