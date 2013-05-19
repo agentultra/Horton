@@ -1,5 +1,5 @@
 from collections import Mapping
-from copy import deepcopy
+from copy import copy, deepcopy
 
 
 class Grid(Mapping):
@@ -110,7 +110,7 @@ class Grid(Mapping):
     def __init__(self, width, height, value=0):
         self.width = width
         self.height = height
-        self._grid = [value for _ in range(width * height)]
+        self._grid = [copy(value) for _ in range(width * height)]
         self._coordinates = None
 
     @classmethod
@@ -157,6 +157,12 @@ class Grid(Mapping):
     def iter_items(self):
         for coordinate in self.coordinates:
             yield (coordinate, self.__getitem__(coordinate))
+
+    def get(self, x, y, default=None):
+        try:
+            return self.__getitem__((x, y))
+        except KeyError:
+            return default
 
     def _is_valid_location(self, x, y):
         if x < 0 or x > self.width - 1:
