@@ -210,7 +210,7 @@ class Grid(Mapping):
                 *args[0]))
         x, y = args[0]
         try:
-            return self._grid[y * self.height + x]
+            return self._grid[y * self.width + x]
         except IndexError:
             raise KeyError("({0}, {1}) is an invalid co-ordinate".format(
                 *args[0]))
@@ -221,7 +221,7 @@ class Grid(Mapping):
                 *args[0]))
         x, y = args[0]
         try:
-            self._grid[y * self.height + x] = args[1]
+            self._grid[y * self.width + x] = args[1]
         except IndexError:
             raise KeyError("({0}, {1}) is an invalid co-ordinate".format(
                 *args[0]))
