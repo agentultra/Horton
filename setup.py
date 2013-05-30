@@ -32,7 +32,7 @@ setup(
     description=__description__,
     classifiers=[
         "Development Status :: 3 - Alpha",
-        "Inteded Audience :: Developers",
+        "Intended Audience :: Developers",
         "License :: OSI Approved :: MIT License",
         "Topic :: Artistic Software",
         "Topic :: Games/Entertainment",
