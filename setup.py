@@ -20,7 +20,7 @@ setup(
 
     install_requires = [
         "sphinx_bootstrap_theme", # for docs
-    ]
+    ],
 
     extras_require = {
         'pygame': ["pygame"],
