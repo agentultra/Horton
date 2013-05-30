@@ -6,105 +6,8 @@ class Grid(Mapping):
     """
     A Grid is a two-dimensional data-structure.
 
-    >>> g = Grid(5, 5)
-    >>> Grid.pprint(g)
-    0 0 0 0 0
-    0 0 0 0 0
-    0 0 0 0 0
-    0 0 0 0 0
-    0 0 0 0 0
-    >>> g[0, 0] = 1
-    >>> g[4, 4] = 1
-    >>> Grid.pprint(g)
-    1 0 0 0 0
-    0 0 0 0 0
-    0 0 0 0 0
-    0 0 0 0 0
-    0 0 0 0 1
-
-    The height and width of the grid are inclusive while the indexing
-    begins at zero.  Access to elements of the grid are provided via
-    the Mapping interface.  Internally the elements are stored in a
-    flat array and can be any Python object.  The default element is
-    the integer 0, but can be specified via the 'value' parameter to
-    the Grid's constructor:
-
-    >>> g = Grid(3, 3, value=".")
-    >>> Grid.pprint(g)
-    . . .
-    . . .
-    . . .
-
-    There are helpful static methods available for copying grids,
-    creating grids from arrays, and pretty printing grids.
-
-    >>> w = h = 3
-    >>> world = [0, 0, 0,
-    ...          1, 0, 1,
-    ...          0, 1, 0]
-    >>> g = Grid.from_array(w, h, world)
-    >>> Grid.pprint(g)
-    0 0 0
-    1 0 1
-    0 1 0
-
-    Care must be taken when creating Grids from arrays to ensure that
-    the proper dimensions are passed in.  The only assertion this
-    method makes is that the product of the width and height are the
-    same as the length of the input array.
-
-    Grids can be compared for equality:
-
-    >>> g1 = Grid(3, 3)
-    >>> g2 = Grid(3, 3)
-    >>> g1[0, 0] = 1
-    >>> g2[0, 0] = 1
-    >>> g3 = Grid(3, 3)
-    >>> g1 == g2
-    True
-    >>> g1 == g3
-    False
-
-    They support some arithmetic operations:
-
-    >>> g1 = Grid(3, 3)
-    >>> g2 = Grid(3, 3)
-    >>> g1[0, 0] = 4
-    >>> g2[0, 0] = 3
-    >>> Grid.pprint(g1 + g2)
-    7 0 0
-    0 0 0
-    0 0 0
-
-    >>> g1 = Grid(3, 3)
-    >>> g2 = Grid(3, 3)
-    >>> g1[0, 0] = 1
-    >>> g1[0, 1] = 2
-    >>> g2[0, 0] = 1
-    >>> Grid.pprint(g1 - g2)
-    0 0 0
-    2 0 0
-    0 0 0
-
-    You can retrieve a list of co-ordinates or values:
-
-    >>> g = Grid(2, 2)
-    >>> g.coordinates
-    [(0, 0), (1, 0), (0, 1), (1, 1)]
-    >>> g.values
-    [0, 0, 0, 0]
-
-    And iterate over coordinate/value pairs:
-
-    >>> g = Grid.from_array(2, 2,
-    ...                     [1, 2,
-    ...                      3, 4])
-    >>> for c, v in g.items():
-    ...     print c, v
-    (0, 0) 1
-    (1, 0) 2
-    (0, 1) 3
-    (1, 1) 4
+    It provides the Python Mapping interface whose keys are tuples
+    representing co-ordinates in the Grid.
     """
 
     def __init__(self, width, height, value=0):
@@ -229,23 +132,7 @@ class Grid(Mapping):
 
 class Torus(Grid):
     """
-    A grid whose edges are connected.
-
-    >>> w = h = 3
-    >>> world = [0, 1, 0,
-    ...          0, 0, 0,
-    ...          0, 2, 0]
-    >>> t = Torus.from_array(w, h, world)
-    >>> Torus.pprint(t)
-    0 1 0
-    0 0 0
-    0 2 0
-    >>> t[1, 0]
-    1
-    >>> t[1, -1]
-    2
-    >>> t[4, 0]
-    1
+    A Grid whose edges are connected.
     """
 
     def __getitem__(self, *args):
