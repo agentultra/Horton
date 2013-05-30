@@ -18,6 +18,10 @@ setup(
     version=__version__,
     packages=find_packages(),
 
+    install_requires = [
+        "sphinx_bootstrap_theme", # for docs
+    ]
+
     extras_require = {
         'pygame': ["pygame"],
     },
