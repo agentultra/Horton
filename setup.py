@@ -5,6 +5,12 @@ __author__ = "James King"
 __email__ = "james@agentultra.com"
 __version__ = "0.1.1"
 __license__ = "MIT"
+__description__ = """
+A library of grids and other fine amusements. Contains a Grid and
+Grid-like data structures and optional modules for rendering them with
+pygame, creating cellular-automata simulations, games, and such
+things.
+"""
 
 
 setup(
@@ -19,10 +25,13 @@ setup(
     author=__author__,
     author_email=__email__,
     license=__license__,
-    description="A library for building grid-based simulations.",
+    description=__description__,
     classifiers=[
         "Development Status :: 3 - Alpha",
+        "Inteded Audience :: Developers",
         "License :: OSI Approved :: MIT License",
+        "Topic :: Artistic Software",
+        "Topic :: Games/Entertainment",
         "Topic :: Software Development :: Libraries",
     ]
 )
