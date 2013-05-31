@@ -3,10 +3,11 @@ Horton
 
 ![travis build status](https://travis-ci.org/agentultra/Horton.png)
 
-A library of useful things to build grid-based simulations, cellular
-automata, and other fine amusements.
+A library of fine amusements. Grids for Humans. And now with
+easy-peasy Pygame integration. Go from zero to
+kick-ass-cellular-automata-visualization in sixty seconds.
 
-Also includes Conway's Game of Life.
+[Read the docs](https://horton.readthedocs.org/en/latest/ "Read the Horton documentation")
 
 TODO
 ----
