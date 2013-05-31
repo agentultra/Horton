@@ -31,9 +31,7 @@ screen.fill(SCREEN_BLANK_COLOUR)
 
 # TODO: remove me! just some test code
 level = levels.generate_level(DEPTH)
-render_grid(screen, level,
-            0, 0, levels.MAZE_W, levels.MAZE_H,
-            render_cell=levels.draw_maze_tile)
+levels.render_level(screen, level)
 # end TODO
 
 running = True

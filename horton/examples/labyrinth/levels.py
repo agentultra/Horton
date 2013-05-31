@@ -1,12 +1,16 @@
 import pygame
 import random
 
+from copy import deepcopy
 from horton.grid import Grid
+from horton.render.pg import render_grid
 
 import enemy
 
 MAZE_ROWS, MAZE_COLS = (10, 10)
 MAZE_W, MAZE_H = (500, 500)
+
+DEPTH_FACTOR = 3
 
 default_cell = {'north': True,
                 'south': True,
@@ -72,6 +76,8 @@ def draw_maze_tile(surface, tile, x, y, width, height):
     Draw the cell's tile to the surface.
     """
     tile['draw'](surface, x, y, width, height)
+    for obj in tile['objects']:
+        obj.draw(surface, x, y, width, height)
 
 
 def draw_wall_tile(surface, x, y, width, height):
@@ -91,7 +97,8 @@ def tile_maze(maze):
     Each tile in the new grid is a distinct type: wall, floor, etc.
     """
     tiles = {'wall': {'draw': draw_wall_tile,
-                      'passable': False},
+                      'passable': False,
+                      'objects': []},
              'floor': {'draw': draw_floor_tile,
                        'passable': True,
                        'objects': []}}
@@ -100,22 +107,47 @@ def tile_maze(maze):
     for i in xrange(maze.width):
         for j in xrange(maze.height):
             maze_cell = maze[i, j]
-            tile_maze[(i * 2) + 1, (j * 2) + 1] = tiles['floor']
+            tile_maze[(i * 2) + 1, (j * 2) + 1] = deepcopy(tiles['floor'])
             for d, v in maze_cell.items():
                 if v is False:
                     if d == 'north':
-                        tile_maze[(i * 2) + 1, (j * 2)] = tiles['floor']
+                        tile_maze[(i * 2) + 1, (j * 2)] = deepcopy(tiles['floor'])
                     elif d == 'east':
-                        tile_maze[(i * 2) + 2, (j * 2) + 1] = tiles['floor']
+                        tile_maze[(i * 2) + 2, (j * 2) + 1] = deepcopy(tiles['floor'])
                     elif d == 'south':
-                        tile_maze[(i * 2) + 1, (j * 2) + 2] = tiles['floor']
+                        tile_maze[(i * 2) + 1, (j * 2) + 2] = deepcopy(tiles['floor'])
                     elif d == 'west':
-                        tile_maze[(i * 2), (j * 2) + 1] = tiles['floor']
+                        tile_maze[(i * 2), (j * 2) + 1] = deepcopy(tiles['floor'])
     return tile_maze
+
+
+def enemies_for_depth(depth):
+    return [enemy.Enemy()
+            for _ in range(depth, random.randint(depth + 1,
+                                                 (depth * DEPTH_FACTOR) + 1))]
+
+
+def place_enemies_randomly(level):
+    for enemy in level.enemies:
+        while enemy.position == (0, 0):
+            random_point = (random.randint(1, level.width - 1),
+                            random.randint(1, level.height - 1))
+            random_location = level.get(*random_point)
+            if random_location['passable'] and len(random_location['objects']) == 0:
+                random_location['objects'].append(enemy)
+                enemy.position = random_point
 
 
 def generate_level(depth):
     maze = generate_maze()
-    tiled_maze = tile_maze(maze)
+    level = tile_maze(maze)
+    level.enemies = enemies_for_depth(depth)
+    place_enemies_randomly(level)
 
-    return tiled_maze
+    return level
+
+
+def render_level(surface, level):
+    render_grid(surface, level,
+                0, 0, MAZE_W, MAZE_H,
+                render_cell=draw_maze_tile)
