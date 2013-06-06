@@ -3,7 +3,7 @@
 labyrinth.py -- beware ye who enter!
 
 A short game of exploration and perma-death. And reincarnation. And
-death.  By James King.
+death.
 
 (c) 2013 James King
 """
@@ -21,7 +21,6 @@ SCREEN_BLANK_COLOUR = (0, 0, 0)
 
 DEPTH = 1
 
-# Main game loop
 
 pygame.init()
 pygame.display.set_caption("Labyrinth!")
@@ -41,5 +40,3 @@ while running:
             running = False
 
     pygame.display.flip()
-
-# End main game loop

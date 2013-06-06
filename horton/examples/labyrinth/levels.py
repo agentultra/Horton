@@ -6,8 +6,7 @@ from copy import deepcopy
 from horton.grid import Grid
 from horton.render.pg import render_grid
 
-import enemy
-import player
+import entities
 
 from utils import average, distance
 
@@ -92,6 +91,10 @@ def draw_floor_tile(surface, x, y, width, height):
     pygame.draw.rect(surface, (180, 180, 180), pygame.Rect(x, y, width, height))
 
 
+def draw_exit_tile(surface, x, y, width, height):
+    pygame.draw.rect(surface, (0, 0, 255), pygame.Rect(x, y, width, height))
+
+
 def tile_maze(maze):
     """
     Return a tile-based maze from a cell-based maze.
@@ -126,7 +129,7 @@ def tile_maze(maze):
 
 
 def enemies_for_depth(depth):
-    return [enemy.Enemy()
+    return [entities.Enemy()
             for _ in range(random.randint(depth + 1,
                                           (depth * DEPTH_FACTOR) + 1))]
 
@@ -150,7 +153,7 @@ def place_player_at_start(level):
     Choose a location along an edge of the map that is furthest from
     all of the enemies.
     """
-    p = player.Player()
+    p = entities.Player()
     edge_tiles = set([])
     for x in range(1, level.width):
         n, s = (x, 1), (x, level.height - 1)
@@ -175,7 +178,16 @@ def place_player_at_start(level):
     start_position = enemy_edge_distances[0][0]
     p.position = start_position
     level.player = p
-    level[start_position]['objects'].append(player.Player(*start_position))
+    level[start_position]['objects'].append(p)
+
+
+def place_exit(level):
+    """
+    Place the exit tile somewhere on the opposite side of the level
+    from the player.
+    """
+    pos = (-level.player.x % level.width, -level.player.y % level.height)
+    print(pos)
 
 
 def satisfactory_placement(level):
@@ -213,6 +225,7 @@ def satisfactory_placement(level):
 def clear_level(level):
     level.enemies = []
     level.player = None
+    level.exit = None
     for tile in level:
         tile['objects'] = []
 
@@ -225,6 +238,7 @@ def generate_level(depth):
     while not level.placement_finished:
         place_enemies_randomly(level, depth)
         place_player_at_start(level)
+        place_exit(level)
         if satisfactory_placement(level):
             level.placement_finished = True
         else:

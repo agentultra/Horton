@@ -5,7 +5,8 @@ from abc import abstractmethod, abstractproperty
 
 class Tile(object):
 
-    objects = []
+    def __init__(self):
+        self.objects = []
 
     @abstractproperty
     def passable(self):
@@ -35,4 +36,13 @@ class Floor(Tile):
 
     def draw(self, surface, x, y, width, height):
         pygame.draw.rect(surface, (180, 180, 180),
+                         pygame.Rect(x, y, width, height))
+
+
+class Exit(Tile):
+
+    passable = False
+
+    def draw(self, surface, x, y, width, height):
+        pygame.draw.rect(surface, (0, 0, 255),
                          pygame.Rect(x, y, width, height))
