@@ -30,7 +30,7 @@ screen = pygame.display.set_mode((SCREEN_W, SCREEN_H))
 screen.fill(SCREEN_BLANK_COLOUR)
 
 # TODO: remove me! just some test code
-level = levels.generate_level(DEPTH)
+level = levels.generate_level(1)
 levels.render_level(screen, level)
 # end TODO
 

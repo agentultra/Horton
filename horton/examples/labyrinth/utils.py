@@ -14,3 +14,10 @@ def distance(p1, p2):
     b = p1[1] - p2[1]
     c = a**2 + b**2
     return math.sqrt(c)
+
+
+def average(*args):
+    """
+    Return the average from the list of args.
+    """
+    return sum(args) / len(args)

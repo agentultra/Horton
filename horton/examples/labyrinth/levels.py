@@ -9,12 +9,12 @@ from horton.render.pg import render_grid
 import enemy
 import player
 
-from utils import distance
+from utils import average, distance
 
 MAZE_ROWS, MAZE_COLS = (10, 10)
 MAZE_W, MAZE_H = (500, 500)
 
-DEPTH_FACTOR = 3
+DEPTH_FACTOR = 2
 
 default_cell = {'north': True,
                 'south': True,
@@ -127,11 +127,12 @@ def tile_maze(maze):
 
 def enemies_for_depth(depth):
     return [enemy.Enemy()
-            for _ in range(depth, random.randint(depth + 1,
-                                                 (depth * DEPTH_FACTOR) + 1))]
+            for _ in range(random.randint(depth + 1,
+                                          (depth * DEPTH_FACTOR) + 1))]
 
 
-def place_enemies_randomly(level):
+def place_enemies_randomly(level, depth):
+    level.enemies = enemies_for_depth(depth)
     for enemy in level.enemies:
         while enemy.position == (0, 0):
             random_point = (random.randint(1, level.width - 1),
@@ -149,6 +150,7 @@ def place_player_at_start(level):
     Choose a location along an edge of the map that is furthest from
     all of the enemies.
     """
+    p = player.Player()
     edge_tiles = set([])
     for x in range(1, level.width):
         n, s = (x, 1), (x, level.height - 1)
@@ -165,21 +167,68 @@ def place_player_at_start(level):
 
     enemy_edge_distances = []
     for coordinate in edge_tiles:
-        enemy_edge_distances.append((coordinate, sum([distance(coordinate, enemy.position)
-                                                      for enemy in level.enemies])))
+        enemy_edge_distances.append((coordinate,
+                                     average(*[distance(coordinate, enemy.position)
+                                               for enemy in level.enemies])))
+
     enemy_edge_distances.sort(key=operator.itemgetter(1), reverse=True)
     start_position = enemy_edge_distances[0][0]
-
+    p.position = start_position
+    level.player = p
     level[start_position]['objects'].append(player.Player(*start_position))
 
+
+def satisfactory_placement(level):
+    """
+    Return True if the placement of the enemies in relation to the
+    player meets our requirements.
+
+    A satisfactory placement consists of the following rules:
+      - There is no enemy within a 5-tile radius of the player
+      - There is no object in a 1 tile radius of an enemy
+    """
+    p_pos = level.player.position
+    p_coords = [(x, y)
+                for x in range(p_pos[0] - 2, p_pos[0] + 3)
+                for y in range(p_pos[1] - 2, p_pos[1] + 3)
+                if level._is_valid_location(x, y)
+                and level[x, y]['passable']
+                and (x, y) != p_pos]
+    if any([level[coord]['objects'] for coord in p_coords]):
+        return False
+
+    for enemy in level.enemies:
+        e_pos = enemy.position
+        e_coords = [(x, y)
+                    for x in range(e_pos[0] - 1, e_pos[0] + 2)
+                    for y in range(e_pos[1] - 1, e_pos[1] + 2)
+                    if level._is_valid_location(x, y)
+                    and level[x, y]['passable']
+                    and (x, y) != e_pos]
+        if any([level[coord]['objects'] for coord in e_coords]):
+            return False
+    return True
+
+
+def clear_level(level):
+    level.enemies = []
+    level.player = None
+    for tile in level:
+        tile['objects'] = []
 
 
 def generate_level(depth):
     maze = generate_maze()
     level = tile_maze(maze)
-    level.enemies = enemies_for_depth(depth)
-    place_enemies_randomly(level)
-    place_player_at_start(level)
+    level.placement_finished = False
+
+    while not level.placement_finished:
+        place_enemies_randomly(level, depth)
+        place_player_at_start(level)
+        if satisfactory_placement(level):
+            level.placement_finished = True
+        else:
+            clear_level(level)
 
     return level
 
