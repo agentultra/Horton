@@ -8,6 +8,7 @@ death.
 (c) 2013 James King
 """
 
+import functools
 import pygame
 
 from horton.render.pg import render_grid
@@ -38,5 +39,18 @@ while running:
     for event in pygame.event.get():
         if event.type == QUIT:
             running = False
+        if event.type == KEYDOWN:
+            move = functools.partial(levels.move_player, level)
+            if event.key == K_ESCAPE:
+                running = False
+            elif event.key == K_w:
+                move("north")
+            elif event.key == K_s:
+                move("south")
+            elif event.key == K_d:
+                move("east")
+            elif event.key == K_a:
+                move("west")
+            levels.render_level(screen, level)
 
     pygame.display.flip()

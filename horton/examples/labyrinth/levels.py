@@ -10,10 +10,14 @@ import entities
 
 from utils import average, distance
 
+
 MAZE_ROWS, MAZE_COLS = (10, 10)
 MAZE_W, MAZE_H = (500, 500)
 
+VALID_MOVEMENT_DIRS = ["north", "south", "east", "west"]
+
 DEPTH_FACTOR = 2
+
 
 default_cell = {'north': True,
                 'south': True,
@@ -251,3 +255,25 @@ def render_level(surface, level):
     render_grid(surface, level,
                 0, 0, MAZE_W, MAZE_H,
                 render_cell=draw_maze_tile)
+
+
+def move_player(level, direction):
+    assert direction in VALID_MOVEMENT_DIRS
+
+    pos = level.player.position
+    if direction == "north":
+        dest = (pos[0], pos[1] - 1)
+    elif direction == "south":
+        dest = (pos[0], pos[1] + 1)
+    elif direction == "east":
+        dest = (pos[0] + 1, pos[1])
+    elif direction == "west":
+        dest = (pos[0] - 1, pos[1])
+
+    destination_tile = level.get(*dest)
+    if destination_tile and destination_tile['passable']:
+        level.player.position = dest
+        destination_tile['objects'].append(level.player)
+        level[pos]['objects'].pop(level[pos]['objects'].index(level.player))
+    else:
+        print("Staying put!")
