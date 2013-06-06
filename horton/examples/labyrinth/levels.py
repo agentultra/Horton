@@ -1,3 +1,4 @@
+import operator
 import pygame
 import random
 
@@ -6,6 +7,9 @@ from horton.grid import Grid
 from horton.render.pg import render_grid
 
 import enemy
+import player
+
+from utils import distance
 
 MAZE_ROWS, MAZE_COLS = (10, 10)
 MAZE_W, MAZE_H = (500, 500)
@@ -138,11 +142,44 @@ def place_enemies_randomly(level):
                 enemy.position = random_point
 
 
+def place_player_at_start(level):
+    """
+    Place the Player in the starting position for the level.
+
+    Choose a location along an edge of the map that is furthest from
+    all of the enemies.
+    """
+    edge_tiles = set([])
+    for x in range(1, level.width):
+        n, s = (x, 1), (x, level.height - 1)
+        if level[n]['passable']:
+            edge_tiles.add(n)
+        if level[s]['passable']:
+            edge_tiles.add(s)
+    for y in range(1, level.height):
+        w, e = (1, y), (level.width - 1, y)
+        if level[w]['passable']:
+            edge_tiles.add(w)
+        if level[e]['passable']:
+            edge_tiles.add(e)
+
+    enemy_edge_distances = []
+    for coordinate in edge_tiles:
+        enemy_edge_distances.append((coordinate, sum([distance(coordinate, enemy.position)
+                                                      for enemy in level.enemies])))
+    enemy_edge_distances.sort(key=operator.itemgetter(1), reverse=True)
+    start_position = enemy_edge_distances[0][0]
+
+    level[start_position]['objects'].append(player.Player(*start_position))
+
+
+
 def generate_level(depth):
     maze = generate_maze()
     level = tile_maze(maze)
     level.enemies = enemies_for_depth(depth)
     place_enemies_randomly(level)
+    place_player_at_start(level)
 
     return level
 
