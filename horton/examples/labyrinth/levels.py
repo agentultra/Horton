@@ -8,7 +8,7 @@ from horton.render.pg import render_grid
 
 import entities
 
-from utils import average, distance
+from utils import average, distance, neighbours
 
 
 MAZE_ROWS, MAZE_COLS = (10, 10)
@@ -132,6 +132,25 @@ def tile_maze(maze):
     return tile_maze
 
 
+def add_random_connections(level):
+    walls = [(x, y)
+             for x in range(1, level.width - 1)
+             for y in range(1, level.height - 1)
+             if level._is_valid_location(x, y)
+             and not level[x, y]['passable']]
+    for i in range(5):
+        try:
+            rand_wall = walls.pop(random.randint(0, len(walls)))
+        except IndexError as e:
+            continue
+        else:
+            print(rand_wall)
+            level[rand_wall]['passable'] = True
+            level[rand_wall]['draw'] = draw_floor_tile
+            level[rand_wall]['objects'] = []
+    return level
+
+
 def enemies_for_depth(depth):
     return [entities.Enemy()
             for _ in range(random.randint(depth + 1,
@@ -204,23 +223,15 @@ def satisfactory_placement(level):
       - There is no object in a 1 tile radius of an enemy
     """
     p_pos = level.player.position
-    p_coords = [(x, y)
-                for x in range(p_pos[0] - 2, p_pos[0] + 3)
-                for y in range(p_pos[1] - 2, p_pos[1] + 3)
-                if level._is_valid_location(x, y)
-                and level[x, y]['passable']
-                and (x, y) != p_pos]
+    p_coords = filter(lambda c: level[c]['passable'],
+                      neighbours(level, p_pos, radius=5))
     if any([level[coord]['objects'] for coord in p_coords]):
         return False
 
     for enemy in level.enemies:
         e_pos = enemy.position
-        e_coords = [(x, y)
-                    for x in range(e_pos[0] - 1, e_pos[0] + 2)
-                    for y in range(e_pos[1] - 1, e_pos[1] + 2)
-                    if level._is_valid_location(x, y)
-                    and level[x, y]['passable']
-                    and (x, y) != e_pos]
+        e_coords = filter(lambda c: level[c]['passable'],
+                          neighbours(level, e_pos, 1))
         if any([level[coord]['objects'] for coord in e_coords]):
             return False
     return True
@@ -236,7 +247,7 @@ def clear_level(level):
 
 def generate_level(depth):
     maze = generate_maze()
-    level = tile_maze(maze)
+    level = add_random_connections(tile_maze(maze))
     level.placement_finished = False
 
     while not level.placement_finished:
