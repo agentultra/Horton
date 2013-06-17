@@ -2,11 +2,12 @@ import operator
 import pygame
 import random
 
-from copy import deepcopy
+from copy import copy, deepcopy
 from horton.grid import Grid
 from horton.render.pg import render_grid
 
 import entities
+import tiles
 
 from utils import average, distance, neighbours
 
@@ -58,7 +59,7 @@ def remove_wall_between(source, target, grid):
 
 
 def generate_maze():
-    grid = Grid(MAZE_ROWS, MAZE_COLS, value=default_cell)
+    grid = Grid(MAZE_ROWS, MAZE_COLS, value=lambda: copy(default_cell))
     stack = []
     current_cell = random.choice(grid.coordinates)
     grid[current_cell]['visited'] = True
@@ -82,21 +83,9 @@ def draw_maze_tile(surface, tile, x, y, width, height):
     """
     Draw the cell's tile to the surface.
     """
-    tile['draw'](surface, x, y, width, height)
-    for obj in tile['objects']:
+    tile.draw(surface, x, y, width, height)
+    for obj in tile.objects:
         obj.draw(surface, x, y, width, height)
-
-
-def draw_wall_tile(surface, x, y, width, height):
-    pygame.draw.rect(surface, (0, 0, 0), pygame.Rect(x, y, width, height))
-
-
-def draw_floor_tile(surface, x, y, width, height):
-    pygame.draw.rect(surface, (180, 180, 180), pygame.Rect(x, y, width, height))
-
-
-def draw_exit_tile(surface, x, y, width, height):
-    pygame.draw.rect(surface, (0, 0, 255), pygame.Rect(x, y, width, height))
 
 
 def tile_maze(maze):
@@ -107,28 +96,22 @@ def tile_maze(maze):
     function translates that Grid into a new grid that is tile-based.
     Each tile in the new grid is a distinct type: wall, floor, etc.
     """
-    tiles = {'wall': {'draw': draw_wall_tile,
-                      'passable': False,
-                      'objects': []},
-             'floor': {'draw': draw_floor_tile,
-                       'passable': True,
-                       'objects': []}}
     m_width, m_height = maze.dimensions
-    tile_maze = Grid((m_width * 2) + 1, (m_height * 2) + 1, value=tiles['wall'])
+    tile_maze = Grid((m_width * 2) + 1, (m_height * 2) + 1, value=tiles.Wall)
     for i in xrange(maze.width):
         for j in xrange(maze.height):
             maze_cell = maze[i, j]
-            tile_maze[(i * 2) + 1, (j * 2) + 1] = deepcopy(tiles['floor'])
+            tile_maze[(i * 2) + 1, (j * 2) + 1] = tiles.Floor()
             for d, v in maze_cell.items():
                 if v is False:
                     if d == 'north':
-                        tile_maze[(i * 2) + 1, (j * 2)] = deepcopy(tiles['floor'])
+                        tile_maze[(i * 2) + 1, (j * 2)] = tiles.Floor()
                     elif d == 'east':
-                        tile_maze[(i * 2) + 2, (j * 2) + 1] = deepcopy(tiles['floor'])
+                        tile_maze[(i * 2) + 2, (j * 2) + 1] = tiles.Floor()
                     elif d == 'south':
-                        tile_maze[(i * 2) + 1, (j * 2) + 2] = deepcopy(tiles['floor'])
+                        tile_maze[(i * 2) + 1, (j * 2) + 2] = tiles.Floor()
                     elif d == 'west':
-                        tile_maze[(i * 2), (j * 2) + 1] = deepcopy(tiles['floor'])
+                        tile_maze[(i * 2), (j * 2) + 1] = tiles.Floor()
     return tile_maze
 
 
@@ -137,17 +120,14 @@ def add_random_connections(level):
              for x in range(1, level.width - 1)
              for y in range(1, level.height - 1)
              if level._is_valid_location(x, y)
-             and not level[x, y]['passable']]
+             and not level[x, y].passable]
     for i in range(5):
         try:
             rand_wall = walls.pop(random.randint(0, len(walls)))
         except IndexError as e:
             continue
         else:
-            print(rand_wall)
-            level[rand_wall]['passable'] = True
-            level[rand_wall]['draw'] = draw_floor_tile
-            level[rand_wall]['objects'] = []
+            level[rand_wall] = tiles.Floor()
     return level
 
 
@@ -164,8 +144,8 @@ def place_enemies_randomly(level, depth):
             random_point = (random.randint(1, level.width - 1),
                             random.randint(1, level.height - 1))
             random_location = level.get(*random_point)
-            if random_location['passable'] and len(random_location['objects']) == 0:
-                random_location['objects'].append(enemy)
+            if random_location.passable and len(random_location.objects) == 0:
+                random_location.objects.append(enemy)
                 enemy.position = random_point
 
 
@@ -180,15 +160,15 @@ def place_player_at_start(level):
     edge_tiles = set([])
     for x in range(1, level.width):
         n, s = (x, 1), (x, level.height - 1)
-        if level[n]['passable']:
+        if level[n].passable:
             edge_tiles.add(n)
-        if level[s]['passable']:
+        if level[s].passable:
             edge_tiles.add(s)
     for y in range(1, level.height):
         w, e = (1, y), (level.width - 1, y)
-        if level[w]['passable']:
+        if level[w].passable:
             edge_tiles.add(w)
-        if level[e]['passable']:
+        if level[e].passable:
             edge_tiles.add(e)
 
     enemy_edge_distances = []
@@ -201,7 +181,7 @@ def place_player_at_start(level):
     start_position = enemy_edge_distances[0][0]
     p.position = start_position
     level.player = p
-    level[start_position]['objects'].append(p)
+    level[start_position].objects.append(p)
 
 
 def place_exit(level):
@@ -210,7 +190,7 @@ def place_exit(level):
     from the player.
     """
     pos = (-level.player.x % level.width, -level.player.y % level.height)
-    print(pos)
+    print("EXIT: %s" % (pos,))
 
 
 def satisfactory_placement(level):
@@ -223,16 +203,16 @@ def satisfactory_placement(level):
       - There is no object in a 1 tile radius of an enemy
     """
     p_pos = level.player.position
-    p_coords = filter(lambda c: level[c]['passable'],
+    p_coords = filter(lambda c: level[c].passable,
                       neighbours(level, p_pos, radius=5))
-    if any([level[coord]['objects'] for coord in p_coords]):
+    if any([level[coord].objects for coord in p_coords]):
         return False
 
     for enemy in level.enemies:
         e_pos = enemy.position
-        e_coords = filter(lambda c: level[c]['passable'],
+        e_coords = filter(lambda c: level[c].passable,
                           neighbours(level, e_pos, 1))
-        if any([level[coord]['objects'] for coord in e_coords]):
+        if any([level[coord].objects for coord in e_coords]):
             return False
     return True
 
@@ -282,9 +262,9 @@ def move_player(level, direction):
         dest = (pos[0] - 1, pos[1])
 
     destination_tile = level.get(*dest)
-    if destination_tile and destination_tile['passable']:
+    if destination_tile and destination_tile.passable:
         level.player.position = dest
-        destination_tile['objects'].append(level.player)
-        level[pos]['objects'].pop(level[pos]['objects'].index(level.player))
+        destination_tile.objects.append(level.player)
+        level[pos].objects.pop(level[pos].objects.index(level.player))
     else:
         print("Staying put!")

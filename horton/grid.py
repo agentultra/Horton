@@ -10,10 +10,10 @@ class Grid(Mapping):
     representing co-ordinates in the Grid.
     """
 
-    def __init__(self, width, height, value=0):
+    def __init__(self, width, height, value=lambda: 0):
         self.width = width
         self.height = height
-        self._grid = [copy(value) for _ in range(width * height)]
+        self._grid = [value() for _ in range(width * height)]
         self._coordinates = None
 
     @classmethod

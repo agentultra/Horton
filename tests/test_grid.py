@@ -59,15 +59,8 @@ class TestGrid(unittest.TestCase):
                                  "an invalid location")
 
     def test_grid_default_value(self):
-        g = grid.Grid(3, 3, value="foo")
+        g = grid.Grid(3, 3, value=lambda: "foo")
         self.assertEqual(g[0, 0], "foo")
-
-    def test_grid_default_value_is_copied(self):
-        default_value = {'foo': "bar"}
-        g = grid.Grid(3, 3, value=default_value)
-        self.assertEqual(g[0, 0]['foo'], "bar")
-        g[0, 0]['foo'] = "baz"
-        self.assertEqual(g[0, 0]['foo'], "baz")
 
     def test_grid_get_invalid_location(self):
         try:

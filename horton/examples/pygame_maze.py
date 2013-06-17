@@ -1,6 +1,7 @@
 import pygame
 import random
 
+from copy import copy
 from functools import partial
 from horton.grid import Grid
 from horton.render.pg import render_grid
@@ -77,7 +78,7 @@ def remove_wall_between(source, target, grid):
 
 
 def generate_maze():
-    grid = Grid(MAZE_ROWS, MAZE_COLS, value=default_cell)
+    grid = Grid(MAZE_ROWS, MAZE_COLS, value=lambda: copy(default_cell))
     stack = []
     current_cell = random.choice(grid.coordinates)
     grid[current_cell]['visited'] = True

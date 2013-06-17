@@ -23,6 +23,8 @@ def average(*args):
 def neighbours(level, p, radius=1):
     """
     Return all neighbour coordinates within a given radius.
+
+    Note that the coordinate `p` is left out of the results.
     """
     return [(x, y)
             for x in range(p[0] - radius, p[1] + (radius + 1))
