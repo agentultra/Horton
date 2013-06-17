@@ -189,8 +189,9 @@ def place_exit(level):
     Place the exit tile somewhere on the opposite side of the level
     from the player.
     """
-    pos = (-level.player.x % level.width, -level.player.y % level.height)
-    print("EXIT: %s" % (pos,))
+    pos_x, pos_y = (-level.player.x % level.width, -level.player.y % level.height)
+    level[pos_x, pos_y] = tiles.Exit()
+    level.exit = (pos_x, pos_y)
 
 
 def satisfactory_placement(level):
@@ -201,6 +202,7 @@ def satisfactory_placement(level):
     A satisfactory placement consists of the following rules:
       - There is no enemy within a 5-tile radius of the player
       - There is no object in a 1 tile radius of an enemy
+      - The Exit tile is reachable
     """
     p_pos = level.player.position
     p_coords = filter(lambda c: level[c].passable,
@@ -211,18 +213,26 @@ def satisfactory_placement(level):
     for enemy in level.enemies:
         e_pos = enemy.position
         e_coords = filter(lambda c: level[c].passable,
-                          neighbours(level, e_pos, 1))
+                          neighbours(level, e_pos))
         if any([level[coord].objects for coord in e_coords]):
             return False
+
+    exit_ncoords = filter(lambda c: level._is_valid_location(*c),
+                          [(level.exit[0] + x, level.exit[1] + y)
+                           for x, y in ((0, -1), (1, 0), (0, 1), (-1, 0))])
+    if not any([isinstance(level[n], tiles.Floor) for n in exit_ncoords]):
+        return False
+
     return True
 
 
 def clear_level(level):
     level.enemies = []
     level.player = None
-    level.exit = None
-    for tile in level:
-        tile['objects'] = []
+    for coordinate, tile in level.iter_items():
+        if isinstance(tile, tiles.Exit):
+            level[coordinate] = tiles.Wall()
+        tile.objects = []
 
 
 def generate_level(depth):
