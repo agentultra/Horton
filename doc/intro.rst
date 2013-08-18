@@ -67,6 +67,19 @@ with them::
   >>> small_grid.dimensions
   (2, 2)
 
+You can select a region of a Grid using slice notation:
+
+  >>> grid = Grid(10, 10)
+  >>> small_grid = grid[0:0, 4:4]
+  >>> small_grid[0, 0] = 1 # Note that they do not share structure
+  >>> Grid.pprint(small_grid)
+  1 0 0 0
+  0 0 0 0
+  0 0 0 0
+  0 0 0 0
+  >>> print(grid[0, 0])
+  0
+
 Assuming you've installed the *optional* dependency, `pygame`, you can
 easily start rendering your Grid objects. See :doc:`pygame` for more
 information.

@@ -138,19 +138,41 @@ class Grid(Mapping):
         return value in self._grid
 
     def __getitem__(self, *args):
-        """ Return an item from the grid.
+        """ Return something from the grid.
 
-        *The first argument is a tuple (x, y).*
+        The first argument of args is a tuple. If the elements of the
+        tuple are integers then fetch the value at the coordinate. If
+        the elements are slices then return a Grid from the region
+        defined by them.
         """
-        if not self._is_valid_location(*args[0]):
+        if all([isinstance(_, int) for _ in args[0]]):
+            return self.__get_coordinate__(*args[0])
+        elif all([isinstance(_, slice) for _ in args[0]]):
+            return self.__get_slice__(*args[0])
+        else:
+            raise TypeError("Unknown argument type: %r" % args[0])
+
+    def __get_coordinate__(self, x, y):
+        if not self._is_valid_location(x, y):
             raise KeyError("({0}, {1}) is an invalid co-ordinate".format(
-                *args[0]))
-        x, y = args[0]
+                x, y))
         try:
             return self._grid[y * self.width + x]
         except IndexError:
             raise KeyError("({0}, {1}) is an invalid co-ordinate".format(
-                *args[0]))
+                x, y))
+
+    def __get_slice__(self, topleft, bottomright):
+        if topleft > bottomright:
+            raise ValueError("The first slice should be the top-left "
+                             "coordinate of the sub-grid")
+        coords = [(x, y)
+                  for x in range(topleft.start, bottomright.start + 1)
+                  for y in range(topleft.stop, bottomright.stop + 1)]
+        return Grid.from_array(bottomright.start - topleft.start + 1,
+                               bottomright.stop - topleft.stop + 1,
+                               [self.__get_coordinate__(*coord)
+                                for coord in coords])
 
     def __setitem__(self, *args):
         """ Set an item in the grid to a value.
