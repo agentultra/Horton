@@ -138,3 +138,16 @@ class TestGrid(unittest.TestCase):
     def test_contains(self):
         self.g[1, 1] = "foo"
         self.assertTrue("foo" in self.g)
+
+    def test_get_slice(self):
+        self.g[0, 0] = "foo"
+        sub_grid = self.g[0:0, 2:2]
+        self.assertEqual(sub_grid[0, 0], "foo")
+
+    def test_get_negative_slice(self):
+        with self.assertRaises(KeyError):
+            self.g[-1:-1, 2:2]
+
+    def test_get_inverted_slices_raise_error(self):
+        with self.assertRaises(ValueError):
+            self.g[4:4, 0:0]
