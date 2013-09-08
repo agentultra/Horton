@@ -1,6 +1,44 @@
 import unittest
+import weakref
 
 from horton import grid
+
+
+class TestGridSliceProxy(unittest.TestCase):
+
+    def setUp(self):
+        self.g = grid.Grid(5, 5)
+        self.proxy = grid.GridSliceProxy(self.g, slice(1, 1), slice(3, 3))
+
+    def test_getitem(self):
+        self.g[3, 3] = 1
+        self.assertEqual(self.proxy[2, 2], 1)
+
+    def test_getitem_outside_bounds_raises_error(self):
+        self.assertEqual(self.proxy[0, 0], 0)
+        with self.assertRaises(KeyError):
+            self.proxy[4, 4]
+
+    def test_getitem_negative_indices_raise_error(self):
+        with self.assertRaises(KeyError):
+            self.proxy[-1, -1]
+
+    def test_setitem(self):
+        self.proxy[0, 0] = 1
+        self.assertEqual(self.g[1, 1], 1)
+
+    def test_setitem_outside_bounds_raises_error(self):
+        with self.assertRaises(KeyError):
+            self.proxy[4, 4] = 2
+
+    def test_setitem_negative_indices_raise_error(self):
+        with self.assertRaises(KeyError):
+            self.proxy[-1, -1] = 2
+
+    def test_slice_reference_error(self):
+        with self.assertRaises(weakref.ReferenceError):
+            del(self.g)
+            self.proxy[1, 1] = 2
 
 
 class TestGrid(unittest.TestCase):
@@ -141,8 +179,8 @@ class TestGrid(unittest.TestCase):
 
     def test_get_slice(self):
         self.g[0, 0] = "foo"
-        sub_grid = self.g[0:0, 2:2]
-        self.assertEqual(sub_grid[0, 0], "foo")
+        sub = self.g[0:0, 2:2]
+        self.assertEqual(sub[0, 0], "foo")
 
     def test_get_negative_slice(self):
         with self.assertRaises(KeyError):
@@ -151,3 +189,8 @@ class TestGrid(unittest.TestCase):
     def test_get_inverted_slices_raise_error(self):
         with self.assertRaises(ValueError):
             self.g[4:4, 0:0]
+
+    def test_set_slice(self):
+        sub = self.g[1:1, 2:2]
+        sub[0, 0] = "foo"
+        self.assertEqual(self.g[1, 1], "foo")

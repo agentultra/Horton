@@ -1,5 +1,32 @@
+import weakref
+
 from collections import Mapping
 from copy import copy, deepcopy
+
+
+class GridSliceProxy(object):
+
+    def __init__(self, grid, topleft, bottomright):
+        self._grid_ref = weakref.proxy(grid)
+        self.x1, self.y1 = topleft.start, topleft.stop
+        self.x2, self.y2 = bottomright.start, bottomright.stop
+
+    def __getitem__(self, *args):
+        target = args[0]
+        dx, dy = (self.x1 + target[0], self.y1 + target[1])
+        if (dx, dy) > (self.x2, self.y2) or target < (0, 0):
+            raise KeyError("{0} is out of slice bounds".format(
+                str(target)))
+        if all([isinstance(_, int) for _ in target]):
+            return self._grid_ref.__get_coordinate__(dx, dy)
+
+    def __setitem__(self, *args):
+        target = args[0]
+        dx, dy = (self.x1 + target[0], self.y1 + target[1])
+        if (dx, dy) > (self.x2, self.y2) or target < (0, 0):
+            raise KeyError("{0} is out of slice bounds".format(
+                str(target)))
+        self._grid_ref.__setitem__((dx, dy), args[1])
 
 
 class Grid(Mapping):
@@ -166,13 +193,11 @@ class Grid(Mapping):
         if topleft > bottomright:
             raise ValueError("The first slice should be the top-left "
                              "coordinate of the sub-grid")
-        coords = [(x, y)
-                  for x in range(topleft.start, bottomright.start + 1)
-                  for y in range(topleft.stop, bottomright.stop + 1)]
-        return Grid.from_array(bottomright.start - topleft.start + 1,
-                               bottomright.stop - topleft.stop + 1,
-                               [self.__get_coordinate__(*coord)
-                                for coord in coords])
+        if topleft < slice(0, 0):
+            raise KeyError("Negative slices are not supported")
+        if bottomright > slice(self.width - 1, self.height - 1):
+            raise KeyError("Selecting beyond grid bounds is not supported")
+        return GridSliceProxy(self, topleft, bottomright)
 
     def __setitem__(self, *args):
         """ Set an item in the grid to a value.
