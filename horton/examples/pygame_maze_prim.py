@@ -126,7 +126,6 @@ while running:
             running = False
         if event.type == KEYDOWN:
             if event.key == K_SPACE:
-                start = time.time()
                 maze = generate_maze()
             elif event.key == K_RIGHT:
                 MAZE_W += 1
