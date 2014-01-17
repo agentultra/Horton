@@ -80,7 +80,10 @@ def generate_maze():
     frontier = []
     start_cell = random.choice(grid.coordinates)
     grid[start_cell]['set'] = INTERIOR
-    frontier.extend(neighbours(grid, start_cell, is_unvisited))
+    ns = neighbours(grid, start_cell, is_unvisited)
+    for n in ns:
+        grid[n]['set'] = FRONTIER
+    frontier.extend(ns)
 
     while frontier:
         frontier_cell = frontier.pop(random.randrange(len(frontier)))
@@ -117,13 +120,13 @@ running = True
 maze = generate_maze()
 draw_maze(screen, maze)
 
-
 while running:
     for event in pygame.event.get():
         if event.type == QUIT:
             running = False
         if event.type == KEYDOWN:
             if event.key == K_SPACE:
+                start = time.time()
                 maze = generate_maze()
             elif event.key == K_RIGHT:
                 MAZE_W += 1
